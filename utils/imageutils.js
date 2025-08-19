@@ -52,6 +52,8 @@ export function resizeCanvas(canvasOrig, size) {
   return canvas;
 }
 
+
+
 // input: 2x Canvas, output: One new Canvas, resize source
 export function mergeMasks(sourceMask, targetMask) {
   const canvas = document.createElement("canvas");
@@ -94,6 +96,7 @@ export function resizeAndPadBox(sourceDim, targetDim) {
   }
 }
 
+
 /** 
  * input: onnx Tensor [B, *, W, H] and index idx
  * output: Tensor [B, idx, W, H]
@@ -103,7 +106,6 @@ export function sliceTensor(tensor, idx) {
   const stride = width * height;
   const start = stride * idx,
     end = start + stride;
-
   return tensor.cpuData.slice(start, end);
 }
 
@@ -113,15 +115,15 @@ export function sliceTensor(tensor, idx) {
  **/
 export function float32ArrayToCanvas(array, width, height) {
   const C = 4; // 4 output channels, RGBA
+
   const imageData = new Uint8ClampedArray(array.length * C);
 
   for (let srcIdx = 0; srcIdx < array.length; srcIdx++) {
     const trgIdx = srcIdx * C;
     const maskedPx = array[srcIdx] > 0;
-    imageData[trgIdx] = maskedPx > 0 ? 0x32 : 0;
-    imageData[trgIdx + 1] = maskedPx > 0 ? 0xcd : 0;
-    imageData[trgIdx + 2] = maskedPx > 0 > 0 ? 0x32 : 0;
-    // imageData[trgIdx + 3] = maskedPx > 0 ? 150 : 0 // alpha
+    imageData[trgIdx] = maskedPx > 0 ? 0x32 : 0;//r
+    imageData[trgIdx + 1] = maskedPx > 0 ? 0xcd : 0;//g
+    imageData[trgIdx + 2] = maskedPx > 0 > 0 ? 0x32 : 0;//b
     imageData[trgIdx + 3] = maskedPx > 0 ? 255 : 0; // alpha
   }
 
@@ -129,7 +131,7 @@ export function float32ArrayToCanvas(array, width, height) {
   const ctx = canvas.getContext("2d");
   canvas.height = height;
   canvas.width = width;
-  ctx.putImageData(new ImageData(imageData, width, height), 0, 0);
+  ctx.putImageData(new ImageData(imageData,width,height), 0, 0);
 
   return canvas;
 }

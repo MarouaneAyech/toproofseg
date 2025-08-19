@@ -123,9 +123,11 @@ export class SAM2 {
       high_res_feats_1: results[session.outputNames[1]],
       image_embed: results[session.outputNames[2]],
     };
+    return this.image_encoded;
   }
 
   async decode(points, masks) {
+    //  console.log(" decode() got called with points:", points, "and masks:", masks);
     const [session, device] = await this.getDecoderSession();
 
     const flatPoints = points.map((point) => {
@@ -141,6 +143,7 @@ export class SAM2 {
       flatLabels,
       masks
     });
+
 
     let mask_input, has_mask_input
     if (masks) {
@@ -165,6 +168,7 @@ export class SAM2 {
         flatPoints.length,
         2,
       ]),
+      
       point_labels: new ort.Tensor("float32", flatLabels, [
         1,
         flatLabels.length,
@@ -172,7 +176,7 @@ export class SAM2 {
       mask_input: mask_input,
       has_mask_input: has_mask_input,
     };
-
-    return await session.run(inputs);
+    const output = await session.run(inputs);
+    return output;
   }
 }

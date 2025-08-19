@@ -1,4 +1,4 @@
-import { SAM2 } from "./SAM2";
+ import { SAM2 } from "./SAM2";
 import { Tensor } from "onnxruntime-web";
 
 const sam = new SAM2();
@@ -11,9 +11,7 @@ const stats = {
 };
 
 self.onmessage = async (e) => {
-  // console.log("worker received message")
-
-  const { type, data } = e.data;
+ const { type, data } = e.data;
 
   if (type === "ping") {
     self.postMessage({ type: "downloadInProgress" });
@@ -35,6 +33,8 @@ self.onmessage = async (e) => {
 
     const startTime = performance.now();
     await sam.encodeImage(imgTensor);
+    
+
     const durationMs = performance.now() - startTime;
     stats.encodeImageTimes.push(durationMs);
 
@@ -45,7 +45,6 @@ self.onmessage = async (e) => {
     self.postMessage({ type: "stats", data: stats });
   } else if (type === "decodeMask") {
     const {points, maskArray, maskShape} = data;
-
     const startTime = performance.now();
 
     let decodingResults 
@@ -56,7 +55,6 @@ self.onmessage = async (e) => {
       decodingResults = await sam.decode(points); 
     }
     // decodingResults = Tensor [B=1, Masks, W, H]
-
     self.postMessage({ type: "decodeMaskResult", data: decodingResults });
     self.postMessage({ type: "stats", data: stats });
   } else if (type === "stats") {
