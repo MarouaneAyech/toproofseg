@@ -428,9 +428,10 @@ const encodeImageClick =  () => {
 
     }));
     pointsStackRef.current = mappedPoints;
-    // console.log("mapped points on stack:" , pointsStackRef.current);
+    console.log("mapped points on stack:" , pointsStackRef.current);
     redoStackRef.current = [];
-    setImageURL(labeledImage.image.path)
+    setImageURL(`${labeledImage.image.path}?v=${labeledImage.id}`)
+    console.log("finished in loadlabeledimg function")
   }catch (err){
     console.error("failed to load labeled image" , err)
   }
@@ -543,7 +544,7 @@ const encodeImageClick =  () => {
     return;
   }
 
-  const ctx = canvas.getContext("2d",{ willReadFrequently: true });
+  const ctx = canvas.getContext("2d");
   setDrawReady(false);
 
   const Draw = () =>{
@@ -617,9 +618,9 @@ useEffect(() => {
 
   useEffect(()=>{
     if (!drawReady || !image || !canvasEl.current) return;
-
+    console.log("here")
     if(isLoadingLabeledImage.current && !isEncoding.current){
-      // console.log("passed all conditions launching encode - decode pipeline with points :", pointsStackRef.current)
+      console.log("passed all conditions launching encode - decode pipeline with points :", pointsStackRef.current)
       encodeImageClick().then(()=> { 
        decodeWithPoints(pointsStackRef.current); 
     }).finally(() => {

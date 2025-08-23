@@ -36,7 +36,7 @@ export default function LoadLabeledImageDialog ( {open ,onClose, onSelect }){
         .from("labeled_image")
         .select("* ,image (path)")
         .eq("dataset_id",selectedDataset.id);
-        console.log("from fetchLabeledImages : ",data);
+        // console.log("from fetchLabeledImages : ",data);
         
         if(error) 
             console.error("Failed to fetch labeled images",error);
@@ -79,7 +79,7 @@ export default function LoadLabeledImageDialog ( {open ,onClose, onSelect }){
                 <div className="max-h-48 overflow-y-auto">
                     <table className="w-full text-sm border rounded-sm border-purple-800">
                         <thead>
-                            <tr className=" text-amber-800 text-sm">
+                            <tr className=" text-blue-800 text-sm">
                                 <th className="text-left ">ID</th>
                                 <th className="text-left">Image url</th>
                                 <th></th>
