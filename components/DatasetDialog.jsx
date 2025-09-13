@@ -14,6 +14,7 @@ export default function DatasetDialog ({ open, onClose, onSelect }){
     const [selectedDataset, setSelectedDataset] = useState(null);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
+
     useEffect(()=>{
     const fetchDatasets = async () => {
     const { data, error } = await supabase.from("dataset").select("*");
@@ -26,8 +27,9 @@ export default function DatasetDialog ({ open, onClose, onSelect }){
 
  const handleConfirm = () => {
     if (selectedDataset) {
-      onSelect(selectedDataset);
-      console.log("handeled in dialog- passing ",selectedDataset)
+      onSelect({
+        dataset:selectedDataset,
+    });
       onClose();
     }
   };
@@ -48,10 +50,10 @@ export default function DatasetDialog ({ open, onClose, onSelect }){
                 </button>
                 ))}
             </div> 
-            <div className="mt-4 mr-20 border-purple-300">
-            <p className="text-sm font-medium mb-2">Or create a new one</p>
-            <button className="flex items-center gap-2 bg-purple-600 text-white px-3 py-1 rounded-md hover:bg-purple-500 text-xs ml-5"
-             onClick={()=>{console.log("trig");
+            <div className="flex w-full justify-end items-center mt-5 mr-20 mb-5 border-purple-300">
+            <span className="text-sm font-medium mr-10">Or create a new one :</span>
+            <button className="flex items-center gap-2 bg-purple-600 text-white px-3 py-1  rounded-md hover:bg-purple-500 text-xs whitespace-nowrap "
+             onClick={()=>{
              setCreateDialogOpen(true);
              }} >
               <FolderPlus size={14}/> 
@@ -60,7 +62,7 @@ export default function DatasetDialog ({ open, onClose, onSelect }){
            </div>
             <Button
              onClick={onClose}
-             className="mt-4 w-full text-sm hover:bg-gray-500 text-gray-300"
+             className="mt-4  mb-2 w-full text-sm hover:bg-gray-500 text-gray-300"
             >
               Cancel
           </Button>

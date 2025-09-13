@@ -76,11 +76,12 @@ export default function Sidebar({
           </button>
         
           <button className="flex items-center gap-2 bg-green-200 text-green-950 text-xs px-3 py-1 rounded-md hover:bg-green-300"
-           onClick={()=> {console.log("triggered2 sidebar");
-            crop()}}
-           disabled= {!mask}
+           onClick={()=> {
+            console.log("triggered2 sidebar");
+            crop();
+          }}
           >
-          <Scissors size={14} /> Cut-Outs
+          <Scissors size={14} /> Cut-Out
           </button>
         </div>
       </div>

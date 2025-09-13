@@ -3,50 +3,41 @@ import {supabase} from '@/lib/supabaseClient'
 import {uploadImageToSupabase} from '@/lib/storage/UploadImage.js'
 import DatasetDialog from "@/components/DatasetDialog";
 import SaveDesicionDialog from '@/components/SaveDesicionDialog';
+import ImageMetaDialog from '../components/ImageMetaDialog';
 import Saved from '@/components/Saved'
 import React, {
   useState,
   useEffect,
   useRef,
-  useCallback,
 } from "react";
-import { Analytics } from "@vercel/analytics/next";
 import { cn } from "@/lib/utils";
 
 // UI
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
+ 
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 
-import InputDialog from "@/components/ui/inputdialog";
 import { Button } from "@/components/ui/button";
 import Sidebar  from "@/components/ui/sidebar";
 import ImageExistsDialog from "@/components/ImageExistsDialog";
 import {
  LoaderCircle,
-  LoaderPinwheel,
   Fan,
-  Loader,
   Save,
 } from "lucide-react";
 
 // Image manipulations
 import {
   resizeCanvas,
-  resizeCanvasPreserveContent,
-  mergeMasks,
-  maskImageCanvas,
   resizeAndPadBox,
   canvasToFloat32Array,
   float32ArrayToCanvas,
   sliceTensor,
   maskCanvasToFloat32Array,
-  resizeAndPadImageToCanvas
 } from "@/utils/imageutils";
 
 import {isCanvasDrawn} from '@/utils/isCanvasDrawn'
@@ -63,6 +54,7 @@ export default function Home() {
   const [datasetDialogOpen, setDatasetDialogOpen] = useState(false);
   const [saveDecisionOpen, setSaveDecisionOpen] = useState(false);
   const [savedDialogOpen, setSavedDialogOpen] = useState(false);
+  const [metaDialogOpen, setMetaDialogOpen] = useState(false);
 
   
   
@@ -97,10 +89,6 @@ export default function Home() {
   const isEncoding = useRef(false);
 
   const [stats, setStats] = useState(null);
-
-  // input dialog for custom URLs
-  const [inputDialogOpen, setInputDialogOpen] = useState(false);
-  const inputDialogDefaultURL = "https://upload.wikimedia.org/wikipedia/commons/9/96/Pro_Air_Martin_404_N255S.jpg"
 
   const renderBaseImage = () => {
   if (!image || !canvasEl.current) return;
@@ -204,6 +192,7 @@ const encodeImageClick =  () => {
   event.preventDefault();
 
   const canvas = canvasEl.current;
+  // console.log("cavas size when saving clicks :",canvas.width , canvas.height)
   const rect = canvas.getBoundingClientRect();
 
   const scaleX = canvas.width / rect.width;
@@ -301,15 +290,23 @@ const encodeImageClick =  () => {
   }
 
   // Crop image with mask
-  const cropClick = (event) => { 
-    const link = document.createElement("a");
-    link.href = maskImageCanvas(image, mask).toDataURL();
-    link.download = "crop.png";
+ const cropClick = () => {
+  console.log("trigger crop (mask only)");
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  if (!mask) {
+    console.warn("No mask available to save");
+    return;
+  }
+
+  const link = document.createElement("a");
+  link.href = mask.toDataURL("image/png");
+  link.download = "mask.png";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 
   
   const resetState = () => {
@@ -341,9 +338,32 @@ const encodeImageClick =  () => {
     if (!publicImageUrl) return;
 
    setUploadedImageUrl(publicImageUrl);
-   setImageURL(publicImageUrl)
-   setStatus("Encode Image")
+   setMetaDialogOpen(true);
+  
   }
+  const handleSaveImageMeta = async ({ shape, orientation }) => {
+  try {
+    const { data: newImage, error } = await supabase
+      .from("image")
+      .insert({
+        path: uploadedImageUrl,
+        shape: shape,
+        orientation: orientation,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error inserting image metadata:", error.message);
+      return;
+    }
+    setImageURL(uploadedImageUrl)
+    setStatus("Encode Image")
+    setSavedDialogOpen(true);
+  } catch (err) {
+    console.error("Unexpected error while saving image meta:", err);
+  }
+};
 
 
   const handleLabeledImage = async(selectedDataSet) =>{
@@ -371,7 +391,7 @@ const encodeImageClick =  () => {
       const {data:labeledImage, error:labelErr} = await supabase
       .from("labeled_image").insert({
         image_id:imageId,
-        dataset_id:selectedDataSet.id,    
+        dataset_id:selectedDataSet.id,
       }).select().single();
       
       if(labelErr){
@@ -431,7 +451,6 @@ const encodeImageClick =  () => {
     console.log("mapped points on stack:" , pointsStackRef.current);
     redoStackRef.current = [];
     setImageURL(`${labeledImage.image.path}?v=${labeledImage.id}`)
-    console.log("finished in loadlabeledimg function")
   }catch (err){
     console.error("failed to load labeled image" , err)
   }
@@ -460,7 +479,7 @@ const encodeImageClick =  () => {
       console.error("Error inserting new points:", insertErr);
       return;
     }else console.log("points updated successfully.");
-    setSavedDialogOpen(true)
+    setSavedDialogOpen(true);
 
     }catch(error){
       console.error(" error updating labeledImage" , error)
@@ -548,8 +567,8 @@ const encodeImageClick =  () => {
   setDrawReady(false);
 
   const Draw = () =>{
-    // console.log("Drawing image of size:", image.width, image.height);
-    // console.log("canvasEl.current size before draw:", canvas.width, canvas.height);
+    console.log("Drawing image of size:", image.width, image.height);
+     console.log("canvasEl.current size before draw:", canvas.width, canvas.height);
 
     if (canvasEl.current.width !== image.width|| canvasEl.current.height !== image.height) {
       console.warn("Canvas dimension mismatch — fixing it");
@@ -618,7 +637,6 @@ useEffect(() => {
 
   useEffect(()=>{
     if (!drawReady || !image || !canvasEl.current) return;
-    console.log("here")
     if(isLoadingLabeledImage.current && !isEncoding.current){
       console.log("passed all conditions launching encode - decode pipeline with points :", pointsStackRef.current)
       encodeImageClick().then(()=> { 
@@ -727,7 +745,9 @@ useEffect(() => {
                 <DatasetDialog 
                   open={datasetDialogOpen}
                   onClose={() => setDatasetDialogOpen(false)}
-                  onSelect={handleLabeledImage}
+                  onSelect={({ dataset }) =>
+                              handleLabeledImage(dataset)
+                             }
                   />
               <ImageExistsDialog
                 isOpen={imageExistsModalOpen}
@@ -737,6 +757,11 @@ useEffect(() => {
               <Saved
                 open={savedDialogOpen}
                 onClose={() => setSavedDialogOpen(false)}
+              />
+              <ImageMetaDialog
+              open={metaDialogOpen}
+              onSave={handleSaveImageMeta}
+              onClose={()=>setMetaDialogOpen(false)}
               />
           </div>
         </CardContent>
