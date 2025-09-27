@@ -330,15 +330,17 @@ const encodeImageClick =  () => {
     resetState()
     setCurrentLabeledImageId(null); 
 
-    const publicImageUrl = await uploadImageToSupabase(file, (url)=>{
+    const {url , exists}= await uploadImageToSupabase(file, (url)=>{
       setExistingImageUrl(url);
       setImageExistsModalOpen(true);
     });
 
-    if (!publicImageUrl) return;
-
-   setUploadedImageUrl(publicImageUrl);
-   setMetaDialogOpen(true);
+      
+    if (!url) return;
+    setImageURL(url);
+    setStatus("Encode Image");
+    setUploadedImageUrl(url);
+   if(!exists) setMetaDialogOpen(true);
   
   }
   const handleSaveImageMeta = async ({ shape, orientation }) => {

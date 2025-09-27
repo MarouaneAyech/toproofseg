@@ -40,7 +40,6 @@ export default function Sidebar({
   return (
     <>
     <aside className="w-full md:w-72 p-4 bg-white shadow-md rounded-2xl flex flex-col gap-4 text-sm font-medium text-gray-800">
-         <span className='font-bold text-blue-800'>Tools</span>
       <div className="border border-purple-400 p-4 rounded-xl bg-purple-50 shadow-sm">
         <div className="flex items-center gap-2 text-purple-600 font-semibold mb-2">
           <Wand size={18}/> 
@@ -89,7 +88,7 @@ export default function Sidebar({
       <div className="border border-blue-700 rounded-xl p-4 bg-blue-50 shadow-sm">
         <div  className="flex items-center gap-2 text-blue-600 font-semibold mb-2">
           <MousePointerClick size={18} />
-            Hover & Click
+            Segmentation Tools
         </div>
         <p className="text-xs text-gray-600 mb-3">
           Click an object one or more times.
